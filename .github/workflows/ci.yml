@@ -79,7 +79,7 @@ jobs:
             "@context": "http://schema.org/extensions",
             "themeColor": "${{ needs.action_trigger.result == 'success' && '00FF00' || 'FF0000' }}",
             "summary": "${{ needs.action_trigger.result == 'success' && '🎉 Build succeeded!' || '❌ Build failed!' }}",
-            "title": "${{ needs.action_trigger.result == 'success' && '🎉 Build succeeded!' || '❌ Build failed!' }}: ${{ github.workflow }}",
+            "title": "${{ needs.action_trigger.result == 'success' && '🎉 Build succeeded!' || '❌ Build failed!' }}: ${{ github.repository }}: ${{ github.workflow }}",
             "sections": [{
               "facts": [
                 { "name": "Repository", "value": "${{ github.repository }}" },

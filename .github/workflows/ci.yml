@@ -60,7 +60,7 @@ jobs:
         env:
           ECR_REGISTRY: ${{ steps.login-pf-aws-ecr.outputs.registry }}
           ECR_REPOSITORY: ${{ secrets.AWS_ECR_REPOSITORY }}
-          IMAGE_TAG: ${{ env.IMAGE || 'latest' }}
+          IMAGE_TAG: ${{ env.BRANCH }}
         run: |
           IMAGE_URI="${ECR_REGISTRY}/${ECR_REPOSITORY}/${{ env.ACTIVE }}:${IMAGE_TAG}"
           docker build --tag ${IMAGE_URI} --file Dockerfile-Self .
@@ -78,7 +78,7 @@ jobs:
       - name: SSH and Run Docker image
         uses: appleboy/ssh-action@v1.2.0
         with:
-          host: ${{ vars.REMOTE_HOST }}
+          host: ${{ env.REMOTE_HOST }}
           username: ${{ vars.REMOTE_USER }}
           key: ${{ secrets.REMOTE_SSH_KEY }}
           envs: ECR_REGISTRY,ECR_REPOSITORY,IMAGE_TAG,ECR_TOKEN
@@ -108,9 +108,15 @@ jobs:
     needs: [ action_trigger ]
     runs-on: ubuntu-latest
     steps:
+      - name: get tag info
+        uses: Seechange-edu/Parse-Action-Tag@main
+        with:
+          githubToken: ${{ secrets.ACTION_TOKEN }}
+          type: parse
+
       - name: Send Teams Notification
         env:
-          WEBHOOK: ${{ vars.TEAMS_WEBHOOK_URL }}
+          WEBHOOK: ${{ env.TEAMS_WEBHOOK }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           curl -X POST -H "Content-Type: application/json" \

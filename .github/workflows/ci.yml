@@ -111,7 +111,7 @@ jobs:
           IMAGE_TAG: ${{ env.BRANCH }}
           ACTIVE: ${{ env.ACTIVE }}
         with:
-          host: ${{ vars.REMOTE_HOST }}
+          host: ${{ env.REMOTE_HOST }}
           username: ${{ vars.REMOTE_USER }}
           key: ${{ secrets.REMOTE_SSH_KEY }}
           envs: ECR_REGISTRY,ECR_REPOSITORY,IMAGE_TAG,ACTIVE

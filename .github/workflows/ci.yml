@@ -69,7 +69,13 @@ jobs:
           SHORT=$(git rev-parse --short HEAD)
           SUBJECT=$(git log -1 --pretty=%s)
           # Release notes exist only when BRANCH is a release tag (prod); empty for branch deploys (dev).
-          NOTES=$(gh release view "$REF" --repo "$SRC_REPO" --json body -q .body 2>/dev/null | head -c 1500 || true)
+          # Drop what is not for people before truncating: HTML comments (the
+          # release-meta the source repo's workflows read — Adaptive Cards would
+          # print it raw) and the "> ❌ **…**" notes an earlier failed attempt left
+          # on top; the source repo only clears those after this deploy started.
+          NOTES=$(gh release view "$REF" --repo "$SRC_REPO" --json body -q .body 2>/dev/null \
+            | perl -0pe 's/<!--.*?-->\n?//gs; s/^> ❌ \*\*[^\n]*\n(?:> [^\n]*\n)*\n?//mg' \
+            | head -c 1500 || true)
           # Fallback text keeps the card's notes block non-empty (avoids relying on Adaptive Card isVisible).
           if [ -z "$NOTES" ]; then NOTES="_(no release notes — branch deploy)_"; fi
           D=$(openssl rand -hex 8)

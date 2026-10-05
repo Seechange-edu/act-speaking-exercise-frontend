@@ -1,0 +1,97 @@
+name: User changelog
+
+run-name: User changelog · ${{ inputs.repo }} ${{ inputs.tag }} (${{ inputs.scope }})
+
+# Writes (or rewrites) the user-facing notes of one release by hand: for a
+# release that did not ask for them, one whose run failed, or to redo one.
+# The automatic path is the `changelog` job in each act repository's ci.yml;
+# this is the same repo-toolkit mode with the scope forced.
+#
+# 🔴 This repository is PUBLIC: its logs, job summaries and artifacts are
+# readable by anyone. `quiet` keeps the notes and error details out of them;
+# they land only in the source repository's (private) release. To read a run's
+# details, run the repo-toolkit CLI locally instead:
+#   repo-toolkit changelog --repo <checkout> --tag <tag> --scope single --dry-run
+on:
+  workflow_dispatch:
+    inputs:
+      repo:
+        description: 'Source repository'
+        required: true
+        type: choice
+        options:
+          - think-and-speak-frontend
+          - think-and-speak-backend
+          - AI-Tutor-Backend
+          - cms-frontend
+          - cms_backend
+      tag:
+        description: 'Release tag, e.g. v3.13.13'
+        required: true
+        type: string
+      scope:
+        description: 'single: this repository; joint: plus the versions its release-meta declares'
+        required: true
+        type: choice
+        options:
+          - single
+          - joint
+        default: single
+      previous:
+        description: 'Where this repository starts (default: where the notes last reached)'
+        required: false
+        type: string
+        default: ''
+
+permissions:
+  contents: read
+
+jobs:
+  changelog:
+    runs-on: ubuntu-latest
+    env:
+      TAG: ${{ inputs.tag }}
+      PREVIOUS: ${{ inputs.previous }}
+    steps:
+      # Free text going into a checkout ref: tag-shaped or nothing.
+      - name: Check the tags
+        run: |
+          for NAME in "$TAG" "$PREVIOUS"; do
+            [ -z "$NAME" ] || printf '%s' "$NAME" | grep -Eq '^[A-Za-z0-9._-]+$' || {
+              echo "::error::'${NAME}' is not a tag name."
+              exit 1
+            }
+          done
+
+      - name: Checkout the source repository with its history
+        uses: actions/checkout@v4
+        with:
+          repository: Seechange-edu/${{ inputs.repo }}
+          ref: ${{ env.TAG }}
+          token: ${{ secrets.ACTION_TOKEN }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      # repo-toolkit is private, and a public repository cannot `uses:` a
+      # private action; checked out, it runs as a local one.
+      - name: Checkout repo-toolkit
+        uses: actions/checkout@v4
+        with:
+          repository: Seechange-edu/repo-toolkit
+          token: ${{ secrets.ACTION_TOKEN }}
+          path: .repo-toolkit
+          persist-credentials: false
+
+      - name: Write the release notes
+        uses: ./.repo-toolkit
+        with:
+          mode: changelog
+          tag: ${{ env.TAG }}
+          scope: ${{ inputs.scope }}
+          previous: ${{ env.PREVIOUS }}
+          openaiKey: ${{ secrets.OPENAI_API_KEY }}
+          model: ${{ vars.CHANGELOG_MODEL }}
+          summaryModel: ${{ vars.CHANGELOG_SUMMARY_MODEL }}
+          quiet: 'true'
+          dryRun: 'false'
+          token: ${{ secrets.ACTION_TOKEN }}

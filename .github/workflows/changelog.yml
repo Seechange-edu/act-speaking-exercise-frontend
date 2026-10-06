@@ -1,11 +1,11 @@
 name: User changelog
 
-run-name: User changelog · ${{ inputs.repo }} ${{ inputs.tag }} (${{ inputs.scope }})
+run-name: User changelog · think-and-speak-frontend ${{ inputs.tag }} (${{ inputs.scope }})
 
-# Writes (or rewrites) the user-facing notes of one release by hand: for a
-# release that did not ask for them, one whose run failed, or to redo one.
-# The automatic path is the `changelog` job in each act repository's ci.yml;
-# this is the same repo-toolkit mode with the scope forced.
+# Writes (or rewrites) the user-facing notes of one think-and-speak-frontend release by hand:
+# for a release that did not ask for them, one whose run failed, or to try the
+# changelog out. The automatic path is the `changelog` job in ci.yml; this is
+# the same repo-toolkit mode with the scope forced.
 #
 # 🔴 This repository is PUBLIC: its logs, job summaries and artifacts are
 # readable by anyone. `quiet` keeps the notes and error details out of them;
@@ -15,19 +15,8 @@ run-name: User changelog · ${{ inputs.repo }} ${{ inputs.tag }} (${{ inputs.sco
 on:
   workflow_dispatch:
     inputs:
-      repo:
-        description: 'Source repository'
-        required: true
-        type: choice
-        options:
-          - think-and-speak-frontend
-          - think-and-speak-backend
-          - AI-Tutor-Backend
-          - cms-frontend
-          - cms_backend
-          - think-and-speak
       tag:
-        description: 'Release tag, e.g. v3.13.13'
+        description: 'Release tag of think-and-speak-frontend, e.g. v1.2.3'
         required: true
         type: string
       scope:
@@ -39,7 +28,7 @@ on:
           - joint
         default: single
       previous:
-        description: 'Where this repository starts (default: where the notes last reached)'
+        description: 'Where the notes start (default: where they last reached)'
         required: false
         type: string
         default: ''
@@ -70,7 +59,7 @@ jobs:
       - name: Checkout the source repository with its history
         uses: actions/checkout@v4
         with:
-          repository: Seechange-edu/${{ inputs.repo }}
+          repository: Seechange-edu/think-and-speak-frontend
           ref: ${{ env.TAG }}
           token: ${{ secrets.ACTION_TOKEN }}
           fetch-depth: 0

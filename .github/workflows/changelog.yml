@@ -25,6 +25,7 @@ on:
           - AI-Tutor-Backend
           - cms-frontend
           - cms_backend
+          - think-and-speak
       tag:
         description: 'Release tag, e.g. v3.13.13'
         required: true

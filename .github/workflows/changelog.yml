@@ -42,8 +42,11 @@ jobs:
       - name: Check the request
         id: ok
         run: |
+          # Bash's =~ checks the whole value as one string, where grep would
+          # pass a multi-line value on its one valid line — and a newline here
+          # would write extra lines into GITHUB_OUTPUT below.
           for NAME in "$TAG" "$PREVIOUS"; do
-            [ -z "$NAME" ] || printf '%s' "$NAME" | grep -Eq '^[A-Za-z0-9._-]+$' || {
+            [ -z "$NAME" ] || [[ "$NAME" =~ ^[A-Za-z0-9._-]+$ ]] || {
               echo "::error::'${NAME}' is not a tag name."
               exit 1
             }

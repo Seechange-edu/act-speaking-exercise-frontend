@@ -160,3 +160,15 @@ jobs:
           quiet: 'true'
           dryRun: 'false'
           token: ${{ secrets.ACTION_TOKEN }}
+
+      # Where the notes went and how the run ended — nothing more: this
+      # summary is public, and the notes themselves stay in the (private)
+      # release, as `quiet` above keeps them out of the log and outputs.
+      - name: Write the run summary
+        env:
+          RESULT: ${{ steps.notes.outputs.result }}
+        run: |
+          set -euo pipefail
+          printf '%s' "$RESULT" \
+            | jq -r '.branches[0] | "User changelog: [\(.tag)](\(.url)) — \(.reason)"' \
+            >> "$GITHUB_STEP_SUMMARY"

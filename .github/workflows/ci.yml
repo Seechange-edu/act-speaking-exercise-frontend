@@ -179,7 +179,6 @@ jobs:
     # The run itself is changelog-run.yml, shared with the manual
     # changelog.yml; the release-meta decides the scope (no scope input).
     if: needs.action_trigger.result == 'success' && startsWith(needs.action_trigger.outputs.image_tag, 'v')
-    continue-on-error: true
     permissions:
       id-token: write   # OIDC sign-in to AWS, for the SSM settings
       contents: read
@@ -187,6 +186,8 @@ jobs:
     with:
       source_repo: ${{ needs.action_trigger.outputs.source_repo }}
       tag: ${{ needs.action_trigger.outputs.image_tag }}
+      # A `uses:` job cannot carry continue-on-error; the called job does.
+      soft_fail: true
     secrets: inherit
 
   changelog-notify:

@@ -31,6 +31,11 @@ on:
         required: false
         type: string
         default: ''
+      soft_fail:
+        description: "Carry on when the notes fail, so the caller's run stays green. A job that calls a workflow cannot carry continue-on-error itself, so the deploy path sets this instead; the manual path keeps failures red."
+        required: false
+        type: boolean
+        default: false
     outputs:
       result:
         description: "repo-toolkit's result JSON, for the caller's notifications"
@@ -42,6 +47,7 @@ permissions:
 jobs:
   changelog:
     runs-on: ubuntu-latest
+    continue-on-error: ${{ inputs.soft_fail }}
     permissions:
       id-token: write   # OIDC sign-in to AWS, for the SSM settings
       contents: read
